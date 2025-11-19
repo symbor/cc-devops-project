@@ -302,7 +302,7 @@ For our scalable, multi-region infrastructure built on Managed Instance Groups (
     - [SSL certificate](#ssl-certficate)
     - [Create a target proxy](#create-a-target-https-proxy)
     - [Set forwarding rule ](#set-forwarding-rule-to-route-incoming-requests-to-the-proxy)
-- [(BONUS) Step-by-step using Web Console](#bonus-definietly-easier-using-web-console-global-external-application-load-balancer)
+- [(BONUS) Step-by-step using Web Console](#bonus-quick-setup-using-web-console)
 
 ### Backend service configuration
 ```bash
@@ -346,7 +346,7 @@ gcloud compute url-maps create project-load-balancer \
 ```
 
 
-#### Frontend services configuration
+### Frontend services configuration
 
 #### Reserve external static IP address
 
@@ -406,7 +406,7 @@ gcloud compute forwarding-rules create project-frontend-https \
 
 After a few minutes, our infrastructure is ready to be tested.
 
-#### (BONUS) Quick Setup using Web Console:
+### (BONUS) Quick Setup using Web Console:
 **Using Web Console: Global External Application Load Balancer**
 - Network Services → Load balancing → **Create load balancer**
 - **Type of load balancer:**  Application load balancer (HTTP/HTTPS)
@@ -464,12 +464,12 @@ After a few minutes, our infrastructure is ready to be tested.
 We configured monitoring and alerting to see the behavior of the application, load balancer, and auto-scaling process in all three regions in real time.
 
 
-##### Monitoring and Logging require APIs to be enabled (usually active by default):
+### Monitoring and Logging require APIs to be enabled (usually active by default):
 ``` bash
 gcloud services enable monitoring.googleapis.com logging.googleapis.com
 ```
 
-#### Dashboard „Scalable Web App”
+### Dashboard „Scalable Web App”
 > Monitoring Dashboards  
 - Create Dashboard  
     Nazwa: **Scalable Web App**
@@ -516,25 +516,25 @@ To conduct load tests, we prepared **three Virtual Machines** (VMs) acting as **
 **In this step**:
 - [Get External IP address](#get-information-about-a-static-external-ip-address)
 - [Startup script for traffic generators VMs](#startup-script-for-traffic-generators-vms)
-- [Traffic generators - VMs](#traffic-generators-3-vms-one-for-each-region)
+- [Traffic generators - VMs](#traffic-generators---vms)
 - [Load tests implementation](#load-tests-implementation)
 - [Insights](#insights)
 
-#### Get information about a static external IP address
+### Get information about a static external IP address
 ```bash
 gcloud compute addresses describe project-global-lb-ip --global
 # Response
 address: 34.117.144.129
 addressType: EXTERNAL
 ```
-#### Startup script for traffic generators VMs
+### Startup script for traffic generators VMs
 ```bash
 #!/bin/bash
 sudo apt update
 sudo apt install -y apache2-utils
 ```
 
-#### Traffic generators - VMs
+### Traffic generators - VMs
 ```bash
 # Set new project for clarity
 gcloud config set project sunny-mender-472316-i8
@@ -557,8 +557,8 @@ gcloud compute instances create traffic-generator-asia \
     --machine-type=e2-micro \
     --metadata-from-file=startup-script=generator.sh
 ```
-#### Load tests implementation 
-##### Tests with curl
+### Load tests implementation 
+#### Tests with curl
 ```bash
 # Using the -k flag to validate request without SSL certificate verification
 curl -k https://34.117.144.129/
@@ -568,15 +568,15 @@ for i in {1..1000}; \
  done
 ```
 
-###### Example of results (Dashboard view)
+#### Example of results (Dashboard view)
 ![alt text](image-1.png)
 
-###### Example of results from Load balancer details (Monitoring view)
+#### Example of results from Load balancer details (Monitoring view)
 Traffic from the VM (Asia) was generated correctly. The Load Balancer successfully distributes this traffic to the closest geograhical MIG.
 ![Traffic Generator (from Asia)](simple_test_traffic_asia.png)
 
 
-##### Tests with ab
+#### Tests with ab
 ```bash
 # load test
 ab -n 1000 -c 50 https://34.117.144.129/
@@ -584,11 +584,11 @@ ab -n 1000 -c 50 https://34.117.144.129/
 # heavy load test
 ab -n 200000 -c 500 https://34.117.144.129/
 ```
-###### Examples of results (Dashboard views)
+#### Examples of results (Dashboard views)
 ![alt text](image-5.png)
 ![alt text](image-6.png)
 
-#### Insights
+### Insights
 We can examine how the network traffic was routed using the Load Balancer Monitoring View. Most of the traffic coming from Asia was directed to the MIG in the asia-southeast1 region. Traffic that could not be handled due to overload was redirected to MIGs in other geographic regions (these redirect are shown in the figure below).
 ![Asia traffic analyze](asia_traffic_analyze.png)
 
@@ -614,14 +614,14 @@ With increated and sudden traffic, it would be ideal to automate scaling intelli
 - [Cost explorer](#get-information-about-a-static-external-ip-address)
 - [Cost report](#cost-report)
 
-#### Cost Explorer
+### Cost Explorer
 Cost Explorer allows us to view changes in cost summaries over time, as well as aggregate costs for specific resources that we have to pay for. It is worth noting that even though we chose e2-micro machines, the costs in Asia in USD/hour are the highest, and the lowest costs in our case are in the US (https://cloud.google.com/compute/all-pricing?hl=pl).
 
 ![Cost explorer 1](cost_1.png)
 ![Cost explorer 2](cost_2.png)
 
 
-#### Cost Report
+### Cost Report
 We obtained a cost report that was filtered as follows:
  **Custom range**: 16-18.2025, 
 - **Group by Location**: Region or multi-region
